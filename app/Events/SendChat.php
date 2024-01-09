@@ -17,10 +17,12 @@ class SendChat implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public $message;
-    public function __construct($message)
+    public $message_text;
+    public $receiver_id;
+    public function __construct($message, $receiver_id)
     {
-        $this->message = $message;
+        $this->message_text = $message;
+        $this->receiver_id = $receiver_id;
     }
     
     public function broadcastAs(){

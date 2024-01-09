@@ -29,6 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/chat', [ChatController::class, 'index']);
+    Route::get('/private-chat/{receiver_id}', [ChatController::class, 'privateChat']);
     Route::post('/send', [ChatController::class, 'send']);
 });
 

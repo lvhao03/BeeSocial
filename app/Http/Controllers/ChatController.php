@@ -3,13 +3,36 @@
 namespace App\Http\Controllers;
 use App\Events\SendChat;
 use Illuminate\Http\Request;
+use App\Models\Message;
+use App\Models\User;
+use Carbon\Carbon;
 
 class ChatController extends Controller
 {
     public function index(Request $request){
-        return view("index");
+        $friendList = User::where('id', '!=', \Auth::user()->id)->get();
+        return view("index", ['friendList' => $friendList ]);
     }
+
+    public function privateChat($receiver_id){
+        $result = Message::where(function ($query) use ($receiver_id) {
+            $query->where('receiver_id', \Auth::user()->id)
+                    ->where('sender_id', $receiver_id);
+        })
+        ->orWhere(function ($query) use ($receiver_id) {
+            $query->where('receiver_id', $receiver_id)
+                    ->where('sender_id', \Auth::user()->id);
+        })
+        ->get();
+        return response()->json($result);
+    }
+
     public function send(Request $request){
-        event(new SendChat($request->input('message')));
+        Message::create([
+            'message_text' => $request->input('message'),
+            'sender_id' => \Auth::user()->id,
+            'receiver_id' => $request->input('receiver_id'),
+        ]);
+        event(new SendChat($request->input('message'), $request->input('receiver_id')));
     }
 }
