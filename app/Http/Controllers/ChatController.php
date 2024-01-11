@@ -24,7 +24,16 @@ class ChatController extends Controller
                     ->where('sender_id', \Auth::user()->id);
         })
         ->get();
+        $receiverUser = User::where('id' , $receiver_id)->first();
+        $result->push($receiverUser);;
         return response()->json($result);
+    }
+
+    public function saveReceiver_id(Request $request){
+        $image_url = User::where('id',$request->input('receiver_id'))->value('image_url');
+        session()->put('receiver_id', $request->input('receiver_id') );
+        session()->put('receiver_image', $image_url );
+        \Log::info(session('receiver_image'));
     }
 
     public function send(Request $request){
@@ -33,6 +42,6 @@ class ChatController extends Controller
             'sender_id' => \Auth::user()->id,
             'receiver_id' => $request->input('receiver_id'),
         ]);
-        event(new SendChat($request->input('message'), $request->input('receiver_id')));
+        event(new SendChat($request->input('message'), $request->input('receiver_id'), $request->input('room_id')));
     }
 }

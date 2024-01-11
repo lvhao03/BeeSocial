@@ -43,6 +43,11 @@
             transition: opacity 0.3s ease-in-out;
         }
 
+        #messageList {
+            height: 80vh; /* Chiều cao của khung scroll */
+            overflow: auto; 
+        }
+
         .message-item:hover .hover-text{
             opacity: 1;
         }
@@ -60,7 +65,7 @@
                 <ul id="friend-list">
                     @foreach($friendList as $friend)
                     <li class="d-flex align-items-center user rounded p-2" onclick="goToPrivateChat({{$friend->id}})">
-                        <img style="with:50px; height:50px ; border-radius:50%" src="https://scontent.fsgn8-4.fna.fbcdn.net/v/t1.6435-1/67620016_124718828803630_4274866063075704832_n.jpg?stp=dst-jpg_p100x100&_nc_cat=111&ccb=1-7&_nc_sid=2b6aad&_nc_ohc=l3_dLuDN1BoAX_MTm3R&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.fsgn8-4.fna&oh=00_AfDILU491Ve62OM4Z130dQe5fOl7J8FgW7Wde1z6EGU0QA&oe=65BE39F8">
+                        <img class="border" style="with:50px; height:50px ; border-radius:50%" src="{{$friend->image_url}}">
                         <div class="d-flex  flex-column" style="margin-left: 12px">
                             <h4 class="mt-2">{{$friend->name}}</h4>
                             <span>hello</span>
@@ -71,14 +76,14 @@
             </div>
             <div class="col-md-8 border">
                 <div class="d-flex align-items-center user ">
-                    <img style="with:50px; height:50px ; border-radius:50%" src="https://scontent.fsgn8-4.fna.fbcdn.net/v/t1.6435-1/67620016_124718828803630_4274866063075704832_n.jpg?stp=dst-jpg_p100x100&_nc_cat=111&ccb=1-7&_nc_sid=2b6aad&_nc_ohc=l3_dLuDN1BoAX_MTm3R&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.fsgn8-4.fna&oh=00_AfDILU491Ve62OM4Z130dQe5fOl7J8FgW7Wde1z6EGU0QA&oe=65BE39F8">
+                    <img id="avatar" class="border" style="with:50px; height:50px ; border-radius:50%" src="https://scontent.fsgn8-4.fna.fbcdn.net/v/t1.6435-1/67620016_124718828803630_4274866063075704832_n.jpg?stp=dst-jpg_p100x100&_nc_cat=111&ccb=1-7&_nc_sid=2b6aad&_nc_ohc=l3_dLuDN1BoAX_MTm3R&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.fsgn8-4.fna&oh=00_AfDILU491Ve62OM4Z130dQe5fOl7J8FgW7Wde1z6EGU0QA&oe=65BE39F8">
                     <div class="d-flex  flex-column " style="margin-left: 12px">
-                        <h6 class="mt-2">User</h4>
-                        <span>Hello</span>
+                        <h6 class="mt-2 receiver-name">User</h4>
+                        <span>Đang hoạt động</span>
                     </div>
                   </div>
-                <ul id="messageList">
-                </ul>
+                <div id="messageList">
+                </div>
                 <form action="/send" method="POST"  id="myForm">
                     @csrf
                     <input class="form-control rounded mb-4" name="message" id="message" type="text" placeholder="Aa">
@@ -87,12 +92,26 @@
         </div>
     </div>
     <a href="/logout">Log out</a>
+    <!-- <script type="module">
+        Echo.join(`presence-chat.3.2`)
+            .here((users) => {
+                console.log('Người dùng hiện tại trong kênh:', users);
+            })
+            .joining((user) => {
+                console.log('Người dùng tham gia kênh:', user);
+            })
+            .leaving((user) => {
+                console.log('Người dùng rời khỏi kênh:', user);
+            })
+    </script> -->
     <script>
-        goToPrivateChat(1);
         var sender_id = <?php echo \Auth::user()->id?>
-
+        
         var receiver_id = 0;
+        var room_id;
+
         function goToPrivateChat(id){
+            autoScrollToBottom();
             receiver_id = id;
             $.ajax({
                 url: '/private-chat/' + receiver_id, 
@@ -101,17 +120,49 @@
                     'X-CSRF-Token':  $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
+                    changeReceiverName(response[response.length - 1])
+                    subscribeToPrivateChannel(receiver_id);
                     $('#messageList').html('');
                     let html = '';
-                    response.forEach(message => {
-                       showMessage(message);
+                    response.slice(0, -1).forEach(message => {
+                       showMessage(message, response[response.length - 1]);
                     })
                     $('#messageList').append(html);
                 },
             });
         }
 
-        function showMessage(message){
+        function changeReceiverName(receiverName){
+            $("#avatar").attr("src", receiverName.image_url);
+            $('.receiver-name').html(receiverName.name);
+        }
+        
+        function subscribeToPrivateChannel(receiver_id){
+            room_id = receiver_id + sender_id;
+            gainAccessToPrivateChannel()
+            Echo.private('private.' + room_id)
+                .listen('.SendChat', (message) => {
+                    showMessage(message, message);
+                    autoScrollToBottom();
+                });
+        }
+
+        function gainAccessToPrivateChannel(){
+            $.ajax({
+                url: '/save', 
+                method: 'POST',
+                headers: {
+                    'X-CSRF-Token':  $('meta[name="csrf-token"]').attr('content')
+                },
+                data: {
+                    receiver_id : receiver_id,
+                },
+                success: function(response) {
+                },
+            });
+        }
+
+        function showMessage(message, receiver = 0){
             let html = '';
             if (message.receiver_id != sender_id) {
                 html += ` <li class="my-4 d-flex flex-row-reverse align-items-center ">
@@ -119,7 +170,7 @@
                 </li>`;
             } else {
                 html +=  `<li class="my-4 d-flex align-items-center ">
-                    <img style="with:50px; height:50px ; border-radius:50%" src="https://scontent.fsgn8-4.fna.fbcdn.net/v/t1.6435-1/67620016_124718828803630_4274866063075704832_n.jpg?stp=dst-jpg_p100x100&_nc_cat=111&ccb=1-7&_nc_sid=2b6aad&_nc_ohc=l3_dLuDN1BoAX_MTm3R&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.fsgn8-4.fna&oh=00_AfDILU491Ve62OM4Z130dQe5fOl7J8FgW7Wde1z6EGU0QA&oe=65BE39F8">
+                    <img style="with:50px; height:50px ; border-radius:50%" src="${receiver.image_url}">
                     <span style="border-radius:10px; margin-left: 15px ; padding: 10px; background-color: #F1F0F0 ; color:black">${message.message_text}</span>
                 </li>`
             }
@@ -130,14 +181,15 @@
             $('#myForm').submit(function(event) {
                 event.preventDefault();
                 $.ajax({
-                    url: '/send', // Replace with your server endpoint
+                    url: '/send', 
                     method: 'POST',
                     headers: {
                         'X-CSRF-Token':  $('meta[name="csrf-token"]').attr('content')
                     },
                     data: {
                         message: $('#message').val(),
-                        receiver_id : receiver_id
+                        receiver_id : receiver_id,
+                        room_id : room_id
                     },
                     success: function(response) {
                         $('#message').val('');
@@ -145,12 +197,10 @@
                 });
             });
         });
-    </script>
-    <script type="module">
-        Echo.channel('chat')
-            .listen('.SendChat', (message) => {
-                showMessage(message);
-            });
+        var scrollContainer = document.getElementById('messageList');
+        function autoScrollToBottom() {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }
     </script>
 </body>
 </html>
