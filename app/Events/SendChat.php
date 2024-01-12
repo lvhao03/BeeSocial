@@ -21,12 +21,14 @@ class SendChat implements ShouldBroadcast
     public $receiver_id;
     public $room_id;
     public $image_url;
-    public function __construct($message, $receiver_id, $room_id)
+    public $sent_date;
+    public function __construct($message, $receiver_id, $room_id, $sent_date)
     {
         $this->message_text = $message;
         $this->receiver_id = $receiver_id;
         $this->room_id = $room_id;
         $this->image_url = session('receiver_image');
+        $this->sent_date = $sent_date;
     }
     
     public function broadcastAs(){

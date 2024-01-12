@@ -86,7 +86,7 @@
                 </div>
                 <form action="/send" method="POST"  id="myForm">
                     @csrf
-                    <input class="form-control rounded mb-4" name="message" id="message" type="text" placeholder="Aa">
+                    <input class="form-control rounded mb-4" require name="message" id="message" type="text" placeholder="Aa">
                 </form>
             </div>
         </div>
@@ -166,15 +166,29 @@
             let html = '';
             if (message.receiver_id != sender_id) {
                 html += ` <li class="my-4 d-flex flex-row-reverse align-items-center ">
-                    <span style="border-radius:10px; color:white; margin-right: 15px ; padding: 10px; background-color: #0084FF">${message.message_text}</span>
+                    <div class="d-flex flex-column p-2 rounded" style=" color:white; background-color: #0084FF">
+                        <span class="pb-2 ">${message.message_text}</span>
+                        <span style="font-size:12px;">${get_hours_and_minutes(message.sent_date)}</span>
+                    </div>
                 </li>`;
             } else {
                 html +=  `<li class="my-4 d-flex align-items-center ">
                     <img style="with:50px; height:50px ; border-radius:50%" src="${receiver.image_url}">
-                    <span style="border-radius:10px; margin-left: 15px ; padding: 10px; background-color: #F1F0F0 ; color:black">${message.message_text}</span>
+                    <div class="d-flex flex-column p-2 rounded" style="background-color: #F1F0F0 ; color:black">
+                        <span class="pb-2">${message.message_text}</span>
+                        <span style="font-size:12px;">${get_hours_and_minutes(message.sent_date)}</span>
+                    </div>
                 </li>`
             }
             $('#messageList').append(html);
+        }
+
+
+        function get_hours_and_minutes(time){
+            var dateObject = new Date(time);
+            var hour = dateObject.getHours();
+            var minute = dateObject.getMinutes();
+            return padZero(hour) + ':' +  padZero(minute);
         }
 
         $(document).ready(function() {
@@ -189,7 +203,8 @@
                     data: {
                         message: $('#message').val(),
                         receiver_id : receiver_id,
-                        room_id : room_id
+                        room_id : room_id,
+                        sent_date:  new Date()
                     },
                     success: function(response) {
                         $('#message').val('');
@@ -200,6 +215,10 @@
         var scrollContainer = document.getElementById('messageList');
         function autoScrollToBottom() {
             scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }
+
+        function padZero(number) {
+            return number < 10 ? '0' + number : number;
         }
     </script>
 </body>
