@@ -1,0 +1,79 @@
+
+:root {
+    --background-color-light: #fff;
+    --text-color-light: #333;
+    --background-color-dark: #242526;
+    --text-color-dark: #fff;
+    --input-background-color: #3A3B3C;
+}
+body {
+    background-color: var(--background-color-light);
+    color: var(--text-color-light);
+    --input-background-color: #444;
+}
+
+input {
+    background-color: var(--input-background-color);
+}
+
+ body.dark-mode {
+    --background-color-light: #333;
+    --text-color-light: #fff;
+    --background-color-dark: #fff;
+    --text-color-dark: #333;
+}
+
+.receiver-message {
+    background-color: #F1F0F0 ;
+}
+
+body.dark-mode input {
+    background-color: var(--input-background-color); /* Set the background color for the input in dark mode */
+    color: var(--text-color-light); /* Set the text color for the input in dark mode */
+}
+body.dark-mode input::placeholder {
+    color: var(--text-color-light); /* Adjust the placeholder color for dark mode */
+}
+body.dark-mode input:focus {
+    background-color: var(--input-background-color); /* Adjust the placeholder color for dark mode */
+}
+
+body.dark-mode input:valid {
+    color: var(--text-color-light); /* Adjust the text color when input is valid for dark mode */
+}
+
+body.dark-mode .receiver-message {
+    background-color: var(--input-background-color);
+}
+
+body.dark-mode .user:hover {
+    background-color: var(--input-background-color);
+}
+
+body.dark-mode ::-webkit-scrollbar {
+    background-color: var(--input-background-color);
+}
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background-color: #686868;
+}
+
+.user:hover {
+    background-color: #F3F3F3;
+    cursor: pointer;
+}
+.message-item {
+    position: relative;
+    cursor: pointer;
+}
+
+#messageList {
+    height: 75vh; /* Chiều cao của khung scroll */
+    overflow: auto; 
+}
+
+.message-item:hover .hover-text{
+    opacity: 1;
+}
+.message-item:hover .hover-text-2{
+    opacity: 1;
+}

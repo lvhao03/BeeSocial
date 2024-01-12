@@ -11,7 +11,7 @@ class ChatController extends Controller
 {
     public function index(Request $request){
         $friendList = User::where('id', '!=', \Auth::user()->id)->get();
-        return view("index", ['friendList' => $friendList ]);
+        return view("index", ['friendList' => $friendList]);
     }
 
     public function privateChat($receiver_id){

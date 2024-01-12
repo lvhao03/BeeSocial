@@ -7,54 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        .user:hover {
-            background-color: #F3F3F3;
-            cursor: pointer;
-        }
-        .message-item {
-            position: relative;
-            cursor: pointer;
-        }
-        .hover-text {
-            opacity: 0;
-            position: absolute;
-            top: 50%;
-            right: 7%; /* Đặt right thành 100% để hiển thị bên trái */
-            transform: translateY(-50%);
-            background-color: #fff;
-            padding: 10px;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        .hover-text-2 {
-            opacity: 0;
-            position: absolute;
-            top: 50%;
-            right: 7%; /* Đặt right thành giá trị dương để hiển thị bên phải */
-            transform: translateY(-50%);
-            background-color: #fff;
-            padding: 10px;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        #messageList {
-            height: 80vh; /* Chiều cao của khung scroll */
-            overflow: auto; 
-        }
-
-        .message-item:hover .hover-text{
-            opacity: 1;
-        }
-        .message-item:hover .hover-text-2{
-            opacity: 1;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -74,12 +28,12 @@
                     @endforeach
                 </ul>
             </div>
-            <div class="col-md-8 border">
+            <div class="col-md-8" style="border-left: 1px solid #2F3031">
                 <div class="d-flex align-items-center user ">
                     <img id="avatar" class="border" style="with:50px; height:50px ; border-radius:50%" src="https://scontent.fsgn8-4.fna.fbcdn.net/v/t1.6435-1/67620016_124718828803630_4274866063075704832_n.jpg?stp=dst-jpg_p100x100&_nc_cat=111&ccb=1-7&_nc_sid=2b6aad&_nc_ohc=l3_dLuDN1BoAX_MTm3R&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.fsgn8-4.fna&oh=00_AfDILU491Ve62OM4Z130dQe5fOl7J8FgW7Wde1z6EGU0QA&oe=65BE39F8">
                     <div class="d-flex  flex-column " style="margin-left: 12px">
                         <h6 class="mt-2 receiver-name">User</h4>
-                        <span>Đang hoạt động</span>
+                        <span style="font-size: 14px">Đang hoạt động</span>
                     </div>
                   </div>
                 <div id="messageList">
@@ -91,6 +45,7 @@
             </div>
         </div>
     </div>
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
     <a href="/logout">Log out</a>
     <!-- <script type="module">
         Echo.join(`presence-chat.3.2`)
@@ -166,15 +121,15 @@
             let html = '';
             if (message.receiver_id != sender_id) {
                 html += ` <li class="my-4 d-flex flex-row-reverse align-items-center ">
-                    <div class="d-flex flex-column p-2 rounded" style=" color:white; background-color: #0084FF">
+                    <div class="d-flex flex-column p-2 rounded mr-2" style=" color:white; background-color: #0084FF">
                         <span class="pb-2 ">${message.message_text}</span>
                         <span style="font-size:12px;">${get_hours_and_minutes(message.sent_date)}</span>
                     </div>
                 </li>`;
             } else {
                 html +=  `<li class="my-4 d-flex align-items-center ">
-                    <img style="with:50px; height:50px ; border-radius:50%" src="${receiver.image_url}">
-                    <div class="d-flex flex-column p-2 rounded" style="background-color: #F1F0F0 ; color:black">
+                    <img class="border" style="with:50px; height:50px ; border-radius:50%" src="${receiver.image_url}">
+                    <div class="d-flex flex-column p-2 rounded ml-2  receiver-message">
                         <span class="pb-2">${message.message_text}</span>
                         <span style="font-size:12px;">${get_hours_and_minutes(message.sent_date)}</span>
                     </div>
@@ -219,6 +174,9 @@
 
         function padZero(number) {
             return number < 10 ? '0' + number : number;
+        }
+         function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
         }
     </script>
 </body>
