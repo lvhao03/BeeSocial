@@ -77,3 +77,7 @@ body.dark-mode ::-webkit-scrollbar-thumb {
 .message-item:hover .hover-text-2{
     opacity: 1;
 }
+
+i:hover {
+    cursor: pointer;
+}

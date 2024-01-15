@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/private-chat/{receiver_id}', [ChatController::class, 'privateChat']);
     Route::post('/send', [ChatController::class, 'send']);
     Route::post('/save', [ChatController::class, 'saveReceiver_id']);
+    Route::post('/upload', [ChatController::class, 'upload']);
 });
 
 require __DIR__.'/auth.php';

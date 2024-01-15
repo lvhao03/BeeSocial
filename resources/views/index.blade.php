@@ -8,6 +8,7 @@
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
@@ -38,10 +39,20 @@
                   </div>
                 <div id="messageList">
                 </div>
-                <form action="/send" method="POST"  id="myForm">
-                    @csrf
-                    <input class="form-control rounded mb-4" require name="message" id="message" type="text" placeholder="Aa">
-                </form>
+                <div class="p-2 d-flex align-items-center gap-3 mb-2">
+                    <form class="w-100" action="/send" method="POST"  id="myForm">
+                        @csrf
+                        <input class="form-control rounded " require name="message" id="message" type="text" placeholder="Aa">
+                    </form>
+                    <i class="fs-5 fa-solid fa-link"></i>
+                    <form action="" enctype="multipart/form-data" id="fileUpload">
+                        <label for="fileInput">
+                            <i class="fs-5 fa-regular fa-image"></i>
+                        </label>
+                        <input type="file" id="fileInput" name="image" hidden>
+                    </form>
+                    <button class="btn btn-primary">Gửi</button>
+                </div>
             </div>
         </div>
     </div>
@@ -62,11 +73,16 @@
     <script>
         var sender_id = <?php echo \Auth::user()->id?>
         
-        var receiver_id = 0;
+
+        var image_url = '{{ asset("storage/") }}';
+        var receiver_id = null;
         var room_id;
 
         function goToPrivateChat(id){
             autoScrollToBottom();
+            if (receiver_id == id){
+                return;
+            }
             receiver_id = id;
             $.ajax({
                 url: '/private-chat/' + receiver_id, 
@@ -78,11 +94,9 @@
                     changeReceiverName(response[response.length - 1])
                     subscribeToPrivateChannel(receiver_id);
                     $('#messageList').html('');
-                    let html = '';
                     response.slice(0, -1).forEach(message => {
                        showMessage(message, response[response.length - 1]);
                     })
-                    $('#messageList').append(html);
                 },
             });
         }
@@ -99,7 +113,7 @@
                 .listen('.SendChat', (message) => {
                     showMessage(message, message);
                     autoScrollToBottom();
-                });
+                })
         }
 
         function gainAccessToPrivateChannel(){
@@ -117,8 +131,12 @@
             });
         }
 
-        function showMessage(message, receiver = 0){
+        function showMessage(message, receiver){
             let html = '';
+            if (message.message_text.endsWith('.png')){
+                showImageMessage(message, receiver);
+                return;
+            }
             if (message.receiver_id != sender_id) {
                 html += ` <li class="my-4 d-flex flex-row-reverse align-items-center ">
                     <div class="d-flex flex-column p-2 rounded mr-2" style=" color:white; background-color: #0084FF">
@@ -131,6 +149,28 @@
                     <img class="border" style="with:50px; height:50px ; border-radius:50%" src="${receiver.image_url}">
                     <div class="d-flex flex-column p-2 rounded ml-2  receiver-message">
                         <span class="pb-2">${message.message_text}</span>
+                        <span style="font-size:12px;">${get_hours_and_minutes(message.sent_date)}</span>
+                    </div>
+                </li>`
+            }
+            $('#messageList').append(html);
+        }
+
+        function showImageMessage(message, receiver){
+            let html = '';
+            let imageSrc = image_url + '/' + message.message_text;
+            if (message.receiver_id != sender_id) {
+                html += ` <li class="my-4 d-flex flex-row-reverse align-items-center ">
+                    <div class="d-flex flex-column mr-2">
+                        <img class="rounded" style="width: 550px; height: 200px ; object-fit:cover;" src="${imageSrc}">
+                        <span style="font-size:12px;">${get_hours_and_minutes(message.sent_date)}</span>
+                    </div>
+                </li>`;
+            } else {
+                html +=  `<li class="my-4 d-flex align-items-center ">
+                    <img class="border" style="with:50px; height:50px ; border-radius:50%" src="${receiver.image_url}">
+                    <div class="d-flex flex-column p-2 rounded ml-2">
+                        <img class="rounded" style="width: 550px; height: 200px object-fit:cover;" src="${imageSrc}">
                         <span style="font-size:12px;">${get_hours_and_minutes(message.sent_date)}</span>
                     </div>
                 </li>`
@@ -166,6 +206,31 @@
                     },
                 });
             });
+
+            $('#fileInput').change(function(event) {
+                $('#fileUpload').submit();
+            });
+
+            $('#fileUpload').submit(function(event){
+                var formData = new FormData(this);
+                formData.append('receiver_id', receiver_id);
+                formData.append('room_id', room_id);
+                formData.append('sent_date', new Date());
+                event.preventDefault();
+                $.ajax({
+                    url: '/upload', 
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-Token':  $('meta[name="csrf-token"]').attr('content')
+                    },
+                    processData: false, // Important for sending FormData
+                    contentType: false, 
+                    data: formData,
+                    success: function(response) {
+                        $('#message').val('');
+                    },
+                });
+            })
         });
         var scrollContainer = document.getElementById('messageList');
         function autoScrollToBottom() {
@@ -175,7 +240,7 @@
         function padZero(number) {
             return number < 10 ? '0' + number : number;
         }
-         function toggleDarkMode() {
+        function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
         }
     </script>

@@ -48,4 +48,26 @@ class ChatController extends Controller
             $request->input('sent_date')
         ));
     }
+
+    public function upload(Request $request){
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+    
+        $imagePath = $request->file('image')->store('uploads','public');
+
+        Message::create([
+            'message_text' =>  $imagePath,
+            'sender_id' => \Auth::user()->id,
+            'receiver_id' => $request->input('receiver_id'),
+        ]);
+
+        event(new SendChat(
+            $imagePath, 
+            $request->input('receiver_id'), 
+            $request->input('room_id'),
+            $request->input('sent_date')
+        ));
+        return response()->json(['message' => 'File uploaded successfully']);
+    }
 }
