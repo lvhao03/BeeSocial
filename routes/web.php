@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\GroupController;
 use Illuminate\Support\Facades\Route;
 use App\Events\SendChat;
 /*
@@ -33,6 +34,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/send', [ChatController::class, 'send']);
     Route::post('/save', [ChatController::class, 'saveReceiver_id']);
     Route::post('/upload', [ChatController::class, 'upload']);
+
+
+    Route::post('/create/group' ,[GroupController::class , 'create'] );
 });
+
+
 
 require __DIR__.'/auth.php';

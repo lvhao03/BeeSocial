@@ -15,19 +15,75 @@
     <div class="container">
         <div class="row">
             <div class="col-md-4" style="padding-right:0px">
-                <h2>Đoạn chat</h2>
-                <input class="form-control rounded mr-4" type="text" placeholder="Tìm kiếm">
-                <ul id="friend-list">
-                    @foreach($friendList as $friend)
-                    <li class="d-flex align-items-center user rounded p-2" onclick="goToPrivateChat({{$friend->id}})">
-                        <img class="border" style="with:50px; height:50px ; border-radius:50%" src="{{$friend->image_url}}">
-                        <div class="d-flex  flex-column" style="margin-left: 12px">
-                            <h4 class="mt-2">{{$friend->name}}</h4>
-                            <span>hello</span>
+                <div class="d-flex py-2 justify-content-between align-items-center"> 
+                    <div class="d-flex">
+                        <img id="main-avatar" class="border" style="with:50px; height:50px ; border-radius:50%" src="https://scontent.fsgn8-4.fna.fbcdn.net/v/t1.6435-1/67620016_124718828803630_4274866063075704832_n.jpg?stp=dst-jpg_p100x100&_nc_cat=111&ccb=1-7&_nc_sid=2b6aad&_nc_ohc=l3_dLuDN1BoAX_MTm3R&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.fsgn8-4.fna&oh=00_AfDILU491Ve62OM4Z130dQe5fOl7J8FgW7Wde1z6EGU0QA&oe=65BE39F8">
+                        <div class="d-flex  flex-column " style="margin-left: 12px">
+                            <h6 class="mt-2 receiver-name">User</h4>
+                            <span style="font-size: 14px">Đang hoạt động</span>
                         </div>
-                    </li>
-                    @endforeach
-                </ul>
+                    </div>
+                    <a href="/logout">
+                        <button class="btn btn-primary mr-4">Đăng xuất</button>
+                    </a>
+                </div>
+                <button  onclick="toggleDarkMode()"><i class="fa-solid fa-sun"></i></button>
+                <div class="mt-2 mr-4">
+                    <input class="form-control rounded " type="text" placeholder="Tìm kiếm">
+                </div>
+                <div class="list">
+                    <ul id="friend-list">
+                        @foreach($friendList as $friend)
+                        <li class="d-flex align-items-center user rounded p-2" onclick="goToPrivateChat({{$friend->id}})">
+                            <img class="border" style="with:50px; height:50px ; border-radius:50%" src="{{$friend->image_url}}">
+                            <div class="d-flex  flex-column" style="margin-left: 12px">
+                                <h4 class="mt-2">{{$friend->name}}</h4>
+                                <span>hello</span>
+                            </div>
+                        </li>
+                        @endforeach
+                    </ul>
+                    <ul id="group-list">
+                        @foreach($groupList as $group)
+                            <li class="d-flex align-items-center user rounded p-2" onclick="goToPrivateChat({{$group->id}})">
+                                <img class="border" style="with:50px; height:50px ; border-radius:50%" src="">
+                                <div class="d-flex  flex-column" style="margin-left: 12px">
+                                    <h4 class="mt-2">{{$group->group_name}}</h4>
+                                    <span>hello</span>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+                <hr>
+                <button class="btn btn-primary mt-2" data-toggle="modal" data-target="#exampleModal">
+                    Tạo nhóm
+                </button>
+
+                <!-- The Modal -->
+                <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Tạo nhóm</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Modal content goes here -->
+                                <form id="groupForm" action="" method="POST">
+                                    <label for="groupName">Tên nhóm</label>
+                                    <input id="groupName" class="form-control rounded mb-2" type="text" placeholder="Nhập tên nhóm">
+                                    <button class="btn btn-primary ml-auto">Tạo nhóm</button>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <!-- Additional buttons or actions can be added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-md-8" style="border-left: 1px solid #2F3031">
                 <div class="d-flex align-items-center user ">
@@ -56,8 +112,7 @@
             </div>
         </div>
     </div>
-    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
-    <a href="/logout">Log out</a>
+    
     <!-- <script type="module">
         Echo.join(`presence-chat.3.2`)
             .here((users) => {
@@ -103,6 +158,7 @@
 
         function changeReceiverName(receiverName){
             $("#avatar").attr("src", receiverName.image_url);
+            console.log(receiverName.image_url);
             $('.receiver-name').html(receiverName.name);
         }
         
@@ -207,6 +263,25 @@
                 });
             });
 
+            $('#groupForm').submit(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    url: '/create/group', 
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-Token':  $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        group_name: $('#groupName').val()
+                    },
+                    success: function(response) {
+                        $('#exampleModal').modal('hide');
+                        $('#groupName').val('');
+                    },
+                });
+            });
+
+
             $('#fileInput').change(function(event) {
                 $('#fileUpload').submit();
             });
@@ -244,5 +319,6 @@
             document.body.classList.toggle('dark-mode');
         }
     </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

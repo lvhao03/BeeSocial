@@ -57,6 +57,13 @@ body.dark-mode ::-webkit-scrollbar-thumb {
     background-color: #686868;
 }
 
+body.dark-mode label {
+    color: var(--text-color-black); 
+}
+
+body.dark-mode .modal-content {
+    background-color: var(--input-background-color);
+}
 .user:hover {
     background-color: #F3F3F3;
     cursor: pointer;
@@ -76,6 +83,11 @@ body.dark-mode ::-webkit-scrollbar-thumb {
 }
 .message-item:hover .hover-text-2{
     opacity: 1;
+}
+
+.list {
+    overflow: auto; 
+    height: 65vh;
 }
 
 i:hover {

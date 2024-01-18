@@ -5,13 +5,15 @@ use App\Events\SendChat;
 use Illuminate\Http\Request;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\Group;
 use Carbon\Carbon;
 
 class ChatController extends Controller
 {
     public function index(Request $request){
         $friendList = User::where('id', '!=', \Auth::user()->id)->get();
-        return view("index", ['friendList' => $friendList]);
+        $groupList = Group::all();
+        return view("index", ['friendList' => $friendList, 'groupList' => $groupList]);
     }
 
     public function privateChat($receiver_id){
