@@ -19,12 +19,14 @@ class SendChat implements ShouldBroadcast
      */
     public $message_text;
     public $receiver_id;
+    public $sender_id;
     public $room_id;
     public $image_url;
     public $sent_date;
-    public function __construct($message, $receiver_id, $room_id, $sent_date)
+    public function __construct($message, $sender_id, $receiver_id, $room_id, $sent_date)
     {
         $this->message_text = $message;
+        $this->sender_id = $sender_id;
         $this->receiver_id = $receiver_id;
         $this->room_id = $room_id;
         $this->image_url = session('receiver_image');
@@ -41,6 +43,10 @@ class SendChat implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('private.' . $this->room_id);
+        $channels = [
+            new PrivateChannel('private.' . $this->room_id),
+            new PrivateChannel('notification.' . $this->receiver_id) 
+        ];
+        return $channels;
     }
 }

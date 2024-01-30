@@ -93,3 +93,11 @@ body.dark-mode .modal-content {
 i:hover {
     cursor: pointer;
 }
+
+.highlight-message h4{
+    font-weight: bold;
+}
+
+.highlight-message span{
+    font-weight: bold;
+}

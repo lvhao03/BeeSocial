@@ -12,9 +12,29 @@ class ChatController extends Controller
 {
     public function index(Request $request){
         $friendList = User::where('id', '!=', \Auth::user()->id)->get();
+        $friendList = $this->addNewestMessageToFriendList($friendList);
         $groupList = Group::all();
         return view("index", ['friendList' => $friendList, 'groupList' => $groupList]);
     }
+
+    public function addNewestMessageToFriendList($friendList){
+        foreach($friendList as $friend) {
+            $message = Message::where(function ($query) use ($friend) {
+                $query->where('receiver_id', \Auth::user()->id)
+                        ->where('sender_id', $friend->id);
+            })
+            ->orWhere(function ($query) use ($friend) {
+                $query->where('receiver_id', $friend->id)
+                        ->where('sender_id', \Auth::user()->id);
+            })
+            ->orderBy('sent_date', 'desc')
+            ->value('message_text');
+            $friend->newest_message = $message;
+            \Log::info($friend->newest_message);
+        };
+        return $friendList;
+    }
+
 
     public function privateChat($receiver_id){
         $result = Message::where(function ($query) use ($receiver_id) {
@@ -38,17 +58,19 @@ class ChatController extends Controller
     }
 
     public function send(Request $request){
-        Message::create([
+        $message = Message::create([
             'message_text' => $request->input('message'),
             'sender_id' => \Auth::user()->id,
             'receiver_id' => $request->input('receiver_id'),
         ]);
         event(new SendChat(
             $request->input('message'), 
+            \Auth::user()->id,
             $request->input('receiver_id'), 
             $request->input('room_id'),
             $request->input('sent_date')
         ));
+        return response()->json($message);
     }
 
     public function upload(Request $request){

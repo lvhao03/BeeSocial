@@ -34,11 +34,11 @@
                 <div class="list">
                     <ul id="friend-list">
                         @foreach($friendList as $friend)
-                        <li class="d-flex align-items-center user rounded p-2" onclick="goToPrivateChat({{$friend->id}})">
+                        <li id="{{$friend->id}}" class=" d-flex align-items-center user rounded p-2" onclick="goToPrivateChat({{$friend->id}})">
                             <img class="border" style="with:50px; height:50px ; border-radius:50%" src="{{$friend->image_url}}">
                             <div class="d-flex  flex-column" style="margin-left: 12px">
                                 <h4 class="mt-2">{{$friend->name}}</h4>
-                                <span>hello</span>
+                                <span class="opacity-75">{{$friend->newest_message}}</span>
                             </div>
                         </li>
                         @endforeach
@@ -49,7 +49,7 @@
                                 <img class="border" style="with:50px; height:50px ; border-radius:50%" src="">
                                 <div class="d-flex  flex-column" style="margin-left: 12px">
                                     <h4 class="mt-2">{{$group->group_name}}</h4>
-                                    <span>hello</span>
+                                    <span class="opacity-75">hello</span>
                                 </div>
                             </li>
                         @endforeach
@@ -130,15 +130,27 @@
         
 
         var image_url = '{{ asset("storage/") }}';
+        var friendList = <?php echo $friendList ?>
+
+
         var receiver_id = null;
         var room_id;
 
+        function subscribeToNotificationChannel(){
+            Echo.private('notification.' + sender_id)
+            .listen('.SendChat', (message) => {
+                notificationChatForReceiver(message);
+            })
+        }
+
         function goToPrivateChat(id){
             autoScrollToBottom();
+            subscribeToNotificationChannel();
             if (receiver_id == id){
                 return;
             }
             receiver_id = id;
+            $(`#${receiver_id}`).removeClass('highlight-message');
             $.ajax({
                 url: '/private-chat/' + receiver_id, 
                 method: 'GET',
@@ -158,7 +170,6 @@
 
         function changeReceiverName(receiverName){
             $("#avatar").attr("src", receiverName.image_url);
-            console.log(receiverName.image_url);
             $('.receiver-name').html(receiverName.name);
         }
         
@@ -235,6 +246,14 @@
         }
 
 
+        function notificationChatForReceiver(message){
+            let id = message.sender_id;
+            if ( $(`#${id}`) == receiver_id) {
+                $(`#${id}`).addClass('highlight-message');
+            }
+            $(`#${id} span`).text(message.message_text);
+        }
+
         function get_hours_and_minutes(time){
             var dateObject = new Date(time);
             var hour = dateObject.getHours();
@@ -244,6 +263,7 @@
 
         $(document).ready(function() {
             $('#myForm').submit(function(event) {
+                let message = $('#message').val();
                 event.preventDefault();
                 $.ajax({
                     url: '/send', 
@@ -252,13 +272,14 @@
                         'X-CSRF-Token':  $('meta[name="csrf-token"]').attr('content')
                     },
                     data: {
-                        message: $('#message').val(),
+                        message: message,
                         receiver_id : receiver_id,
                         room_id : room_id,
                         sent_date:  new Date()
                     },
                     success: function(response) {
                         $('#message').val('');
+                        $(`#${receiver_id} span`).text(message);
                     },
                 });
             });
@@ -318,6 +339,10 @@
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
         }
+
+    </script>
+    <script type="module">
+       
     </script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
