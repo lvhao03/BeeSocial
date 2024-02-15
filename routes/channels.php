@@ -27,7 +27,7 @@ Broadcast::channel('private.{room_id}', function ($user, $room_id) {
     }
 });
 
-Broadcast::channel('presence-chat.{sender_id}.{receiver_id}', function ($user, $sender_id, $receiver_id) {
+Broadcast::channel('group.{group_id}', function ($user, $group_id) {
     return ['user_id' => $user->id];
 });
 

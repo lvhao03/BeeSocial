@@ -13,7 +13,9 @@ class ChatController extends Controller
     public function index(Request $request){
         $friendList = User::where('id', '!=', \Auth::user()->id)->get();
         $friendList = $this->addNewestMessageToFriendList($friendList);
-        $groupList = Group::all();
+        $groupList = Group::whereHas('group_members', function ($query) {
+            $query->where('member_id', \Auth::user()->id);
+        })->get();
         return view("index", ['friendList' => $friendList, 'groupList' => $groupList]);
     }
 
@@ -30,7 +32,6 @@ class ChatController extends Controller
             ->orderBy('sent_date', 'desc')
             ->value('message_text');
             $friend->newest_message = $message;
-            \Log::info($friend->newest_message);
         };
         return $friendList;
     }
@@ -57,18 +58,36 @@ class ChatController extends Controller
         session()->put('receiver_image', $image_url );
     }
 
+    public function get_friend_by_id(Request $request, $friendID){
+        $friend = User::where('id', $friendID)->first();
+        return response()->json($friend);
+    }
+
+    public function get_friend_name(Request $request, $friend_name){
+        $user_list = User::where('name',  'LIKE', '%'.$friend_name.'%')->get();
+        return response()->json($user_list);
+    }
+
     public function send(Request $request){
+        try {
+            $request->validate([
+                'message' => 'required',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => 'Tin nhắn không được để trống'], 422);
+        }
+
         $message = Message::create([
-            'message_text' => $request->input('message'),
+            'message_text' => $request->message,
             'sender_id' => \Auth::user()->id,
-            'receiver_id' => $request->input('receiver_id'),
+            'receiver_id' => $request->receiver_id,
         ]);
         event(new SendChat(
-            $request->input('message'), 
+            $request->message, 
             \Auth::user()->id,
-            $request->input('receiver_id'), 
-            $request->input('room_id'),
-            $request->input('sent_date')
+            $request->receiver_id, 
+            $request->room_id,
+            $request->sent_date
         ));
         return response()->json($message);
     }
@@ -83,14 +102,13 @@ class ChatController extends Controller
         Message::create([
             'message_text' =>  $imagePath,
             'sender_id' => \Auth::user()->id,
-            'receiver_id' => $request->input('receiver_id'),
+            'receiver_id' => $request->receiver_id,
         ]);
 
         event(new SendChat(
             $imagePath, 
-            $request->input('receiver_id'), 
-            $request->input('room_id'),
-            $request->input('sent_date')
+            $request->receiver_id, 
+            $request->sent_date
         ));
         return response()->json(['message' => 'File uploaded successfully']);
     }

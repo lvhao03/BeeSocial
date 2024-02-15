@@ -34,9 +34,19 @@ Route::middleware('auth')->group(function () {
     Route::post('/send', [ChatController::class, 'send']);
     Route::post('/save', [ChatController::class, 'saveReceiver_id']);
     Route::post('/upload', [ChatController::class, 'upload']);
-
-
+    
+    Route::get('/get/user/{userID}', [ChatController::class, 'get_friend_by_id']);
+    Route::get('/user/by/{name}', [ChatController::class, 'get_friend_name']);
+    
+    // Group
     Route::post('/create/group' ,[GroupController::class , 'create'] );
+
+    Route::get('/group/{group_id}' ,[GroupController::class , 'index'] );
+    Route::get('/group/detail/{group_id}' ,[GroupController::class , 'get_detail'] );
+    Route::post('/group/send', [GroupController::class, 'send_group_chat_message']);
+    Route::post('/user/url', [GroupController::class, 'get_user_url']);
+
+    Route::delete('/leave/group', [GroupController::class, 'leave_group']);
 });
 
 
